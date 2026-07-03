@@ -9,7 +9,7 @@ This project investigates how accurately different machine learning and statisti
 Wildfires have grown more frequent and severe across California, and their smoke travels far beyond the burn area, affecting millions of people who never see a flame. PM2.5 is the most harmful pollutant in that smoke — small enough to penetrate deep into the lungs and bloodstream — and is linked to asthma attacks, COPD, cardiovascular disease, and higher mortality. San Jose rarely sits near a fire's origin, but its air quality still degrades from smoke carried in from elsewhere, and conditions can vary sharply between neighborhoods within the same short window of time. Reliable neighborhood-level forecasts, delivered with enough lead time, could help residents limit exposure, help schools plan activities, and give healthcare providers and emergency planners advance notice.
 
 ## Research Question
-How accurately can a range of statistical, machine learning, neural network, time-series, and language-model approaches estimate neighborhood-level PM2.5 concentrations in San Jose during wildfire season, and does model complexity actually translate into better predictions?
+How accurately can machine learning models predict neighborhood-level air quality spikes in San Jose during wildfire season?
 
 ## Data Sources
 All data comes from public sources:
@@ -87,7 +87,7 @@ PM2.5-Research-Project/
 ```
 
 ## Code
-The full analysis — data collection, preprocessing, model training, and evaluation — was developed in a Google Colab notebook.
+The full analysis, data collection, preprocessing, model training, and evaluation, was developed in a Google Colab notebook.
 
 ## Tools & Libraries
 Python, pandas, scikit-learn, statsmodels (ARIMA/SARIMAX), Herbie (NOAA HRRR access), Google Earth Engine Python API
