@@ -73,6 +73,8 @@ Model complexity did not translate into better predictions on this dataset. Simp
 - Forecast probability of unhealthy AQI events several days in advance
 
 ## Repository Structure
+## Repository Structure
+```
 PM2.5-Research-Project/
 ├── data/
 │   ├── raw/                 # Raw wildfire archive downloads (VIIRS C2 fire archives)
@@ -82,6 +84,7 @@ PM2.5-Research-Project/
 │   └── Daily_Data.csv        # Final combined daily dataset used for modeling
 ├── notebook/                 # Google Colab notebook with data pipeline, model training, and evaluation
 └── README.md
+```
 
 ## Code
 The full analysis — data collection, preprocessing, model training, and evaluation — was developed in a Google Colab notebook.
