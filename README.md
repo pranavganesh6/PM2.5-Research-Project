@@ -34,6 +34,7 @@ All data comes from public sources:
 - Elastic Net
 - Random Forest
 - Gradient Boosting
+- Convolutional Neural Network (CNN) 
 - Multi-Layer Perceptron (MLP)
 - Hybrid MLP + Linear Regression (linear regression on MLP hidden-layer features)
 - ARIMA
@@ -50,6 +51,7 @@ All data comes from public sources:
 | Random Forest | 0.831 | 1.064 | 1.032 | 0.698 |
 | Gradient Boosting | 0.962 | 1.323 | 1.150 | 0.624 |
 | MLP | 1.023 | 1.750 | 1.323 | 0.503 |
+| CNN | 1.135 | 2.005 | 1.416 | 0.430 |
 | Persistence Baseline | 1.232 | 2.217 | 1.489 | 0.370 |
 | MLP + Linear Regression | 1.218 | 2.390 | 1.546 | 0.321 |
 | ARIMA | 1.590 | 3.568 | 1.889 | -0.013 |
