@@ -1,75 +1,96 @@
-# Spatially interpolated non-smoke and smoke PM2.5 concentrations for the US from 2006-2024
+# PM2.5 Research Project
 
-[https://doi.org/10.5061/dryad.k0p2ngfhv](https://doi.org/10.5061/dryad.k0p2ngfhv)
+## Predicting Neighborhood-Level Air Quality Spikes in San Jose During Wildfire Season Using Machine Learning
 
-## Description of the data and file structure
+## Overview
+This project investigates how accurately different machine learning and statistical models can predict daily, neighborhood-level PM2.5 (fine particulate matter) concentrations in San Jose, CA during wildfire season. Ten predictive approaches — spanning regression, ensemble learning, neural networks, time-series methods, and an exploratory LLM few-shot prompting approach — were trained and evaluated on the same dataset to see which techniques actually deliver the most reliable forecasts.
 
-**We estimated daily smoke and non-smoke PM2.5 across the contiguous US (CONUS) for 2006-2023 using Environmental Protection Agency (EPA) ground monitors and NOAA Hazard Mapping System (HMS) smoke polygons.**
+## Motivation
+Wildfires have grown more frequent and severe across California, and their smoke travels far beyond the burn area, affecting millions of people who never see a flame. PM2.5 is the most harmful pollutant in that smoke, small enough to penetrate deep into the lungs and bloodstream, and is linked to asthma attacks, COPD, cardiovascular disease, and higher mortality. San Jose doesn't sit near a fire's origin, but its air quality still degrades from smoke carried in from elsewhere, and conditions can vary between neighborhoods within the same short window of time. Reliable neighborhood-level forecasts, delivered with enough lead time, could help residents limit exposure, help schools plan activities, and give healthcare providers and emergency planners advance notice.
 
-The daily PM2.5 data from EPA ground monitors are interpolated to ~15 km resolution to create a total PM2.5 estimate. The HMS smoke polygons are then used to identify locations where there is likely smoke somewhere in the atmospheric column. The seasonal mean or median background is calculated using pixels within the season where an HMS (dense, medium, or light) smoke polygon is not located. The seasonal background can then be subtracted from the total PM2.5 to estimate smoke PM2.5.
+## Research Question
+How accurately can machine learning models predict neighborhood-level air quality spikes in San Jose during wildfire season?
 
-In recent years, an active fire season has resulted in some regions having HMS smoke polygons during the entire season or almost the entire season. To account for this, a minimum number of 15 days is required to estimate the background concentration. If there are not 15 days at a pixel, additional days just prior to and after season are included until the minimum threshold is met.
+## Data Sources
+All data comes from public sources:
+- **PM2.5 measurements (target variable):** EPA Air Quality System (AQS)
+- **Weather variables:** NOAA High Resolution Rapid Refresh (HRRR) model, pulled via the Herbie Python package — temperature, wind speed, wind direction, relative humidity, boundary layer height, surface pressure, precipitation
+- **Wildfire activity:** NASA Fire Information for Resource Management System (FIRMS) — Suomi NPP VIIRS and NOAA-20 VIIRS satellite detections (fire hotspot location and radiative power)
+- **Vegetation conditions (NDVI):** Google Earth Engine Python API, interpolated to a daily time series
+- **Study area:** Target PM2.5 data from Santa Clara County; predictor variables drawn from a wider Northern/Central California region, since the fires affecting San Jose's air typically originate elsewhere
 
-This dataset was produced using code written by Katelyn O'Dell and updated by Jennifer McGinnis. The original code can be found in the Software files.
+## Methodology
+1. Collected and merged weather, wildfire, vegetation, and PM2.5 data onto a common daily time scale, keyed by observation date
+2. Added previous-day PM2.5 concentration as a predictor
+3. Built two dataset versions (raw and standardized) to accommodate models that need scaled features
+4. Split data into training and testing sets
+5. Trained and evaluated 10 models plus a persistence baseline
+6. Compared all models using MAE, MSE, RMSE, and R²
 
-### Files and variables
+### Models Evaluated
+- Persistence Baseline (previous day's PM2.5 value)
+- Linear Regression
+- Polynomial Regression with Lasso regularization
+- Elastic Net
+- Random Forest
+- Gradient Boosting
+- Multi-Layer Perceptron (MLP)
+- Hybrid MLP + Linear Regression (linear regression on MLP hidden-layer features)
+- ARIMA
+- SARIMAX
+- LLM few-shot prompting (exploratory)
 
-The file named “2006_2023_Mean_Background.zip” includes the 2006-2023 kriged data (.nc files) where the background PM2.5 concentration was calculated using the mean value of days with no HMS smoke polygon. The “2006_2023_Median_Background.zip” file includes the 2006-2023 kriged data (.nc files) where the background PM2.5 concentration was calculated using the median value of days with no HMS smoke polygon. For most applications, we recommend using the mean background concentration for calculating the contribution of PM2.5 from smoke. Our method of subtracting the mean or median non-smoke PM2.5 from the total PM2.5 to estimate smoke PM2.5 may result in some negative smoke PM2.5 values. To ensure your analysis accurately represents the data, we recommend including these negative values rather than omitting or altering them.
+## Results
 
-The file named “Intermediary_Files_Figures” includes the intermediate datasets (.npz files) and summary figures (.png files) created in the process of creating the final kriged data. The intermediary datasets can be used to calculate the background concentrations differently to how it was explained above. More information about the files and how they were made can be found in the Supplemental  and Software materials.
+| Model | MAE | MSE | RMSE | R² |
+|-------|-----|-----|------|-----|
+| **Linear Regression** | **0.673** | **0.723** | **0.850** | **0.795** |
+| Polynomial Regression + Lasso (Degree 1) | 0.682 | 0.728 | 0.853 | 0.793 |
+| Elastic Net | 0.696 | 0.759 | 0.871 | 0.784 |
+| Random Forest | 0.831 | 1.064 | 1.032 | 0.698 |
+| Gradient Boosting | 0.962 | 1.323 | 1.150 | 0.624 |
+| MLP | 1.023 | 1.750 | 1.323 | 0.503 |
+| Persistence Baseline | 1.232 | 2.217 | 1.489 | 0.370 |
+| MLP + Linear Regression | 1.218 | 2.390 | 1.546 | 0.321 |
+| ARIMA | 1.590 | 3.568 | 1.889 | -0.013 |
+| LLM Few-Shot Prompting | 2.790 | 11.683 | 3.418 | -2.318 |
+| SARIMAX | 6.237 | 48.614 | 6.972 | -12.805 |
 
-"2024_Mean_Background.zip" and "2024_Median_Background.zip" were also added, in the same format. 
+**Linear Regression was the top performer**, explaining roughly 79.5% of the variance in PM2.5 concentrations, with Polynomial Regression (Lasso, degree 1) and Elastic Net close behind. Ensemble methods (Random Forest, Gradient Boosting) and the MLP trailed the regression models. Time-series methods (ARIMA, SARIMAX) and the exploratory LLM approach performed worst, in several cases failing to beat the naive persistence baseline.
 
-The kriged data is a netCDF (.nc) file with the variables:
+## Key Takeaway
+Model complexity did not translate into better predictions on this dataset. Simple regression-based models — cheap to run and easy to interpret — outperformed ensemble methods, neural networks, time-series models, and an LLM-based approach for neighborhood-level wildfire smoke PM2.5 forecasting. This suggests the chosen predictor variables already captured the dominant physical drivers of smoke transport well enough that a linear fit was sufficient.
 
-“doy”: day of year
+## Limitations
+- Single wildfire season with a limited number of daily observations
+- Predictors don't include land cover, traffic emissions, or atmospheric chemistry data
+- Models built specifically for San Jose; would need validation elsewhere
+- Evaluated on historical data rather than live forecasting conditions
 
-“lon”: degrees longitude for data grid centers
+## Future Work
+- Incorporate multiple wildfire seasons and expand to other regions of California
+- Test spatiotemporal architectures (graph neural networks, transformer-based forecasting, physics-informed ML) given a larger dataset
+- Forecast probability of unhealthy AQI events several days in advance
 
-“lat”: degrees latitude for data grid centers
+## Repository Structure
+## Repository Structure
+```
+PM2.5-Research-Project/
+├── data/
+│   ├── raw/                 # Raw wildfire archive downloads (VIIRS C2 fire archives)
+│   ├── processed/           # Cleaned, daily-resolution datasets per source (wildfire, NDVI, HRRR)
+│   ├── merged/               # Progressive merges of PM2.5, NDVI, wildfire, and HRRR data
+│   ├── predictions/          # Model output predictions (raw and scaled)
+│   └── Daily_Data.csv        # Final combined daily dataset used for modeling
+├── notebook/                 # Google Colab notebook with data pipeline, model training, and evaluation
+└── README.md
+```
 
-“we_lon”: degrees longitude for data grid west-east borders
+## Code
+The full analysis, data collection, preprocessing, model training, and evaluation, was developed in a Google Colab notebook.
 
-“we_lat”: degrees latitude for data grid west-east borders
+## Tools & Libraries
+Python, pandas, scikit-learn, statsmodels (ARIMA/SARIMAX), Herbie (NOAA HRRR access), Google Earth Engine Python API
 
-“ns_lon”: degrees longitude for data grid north-south borders
-
-“ns_lat”: degrees latitude for data grid north-south borders
-
-“PM25”: 24 hour average PM2.5 concentration (µg/m3)
-
-“Background_PM25”: seasonal PM2.5 background concentration (µg/m3) (JFM, AMJ, JAS, OND)
-
-“HMS_Smoke”: Binary HMS Smoke (1=smoke, 0=no smoke)
-
-“testing_sites_longitude”: longitudes for EPA AQS sites used for kriging LOOCV
-
-“testing_sites_latitude”: latitudes for EPA AQS sites used for kriging LOOCV
-
-“r_squared”: r-squared for LOOCV
-
-“mean_bias”: mean bias for LOOCV
-
-“mean_absolute_error”: mean absolute error for LOOCV
-
-“slope”: linear regression slope
-
-“nobs”: number of monitor observations for LOOCV
-
-## Code/software
-
-See the Zenodo links for Software.
-
-## Access information
-
-Other publicly accessible locations of the data:
-
-* [https://mountainscholar.org/items/89896cf7-1a64-43be-a61b-44cd460e9632](https://mountainscholar.org/items/89896cf7-1a64-43be-a61b-44cd460e9632)
-* [https://mountainscholar.org/items/cf8053c6-6a16-49e7-8b0f-1044322d867e](https://mountainscholar.org/items/cf8053c6-6a16-49e7-8b0f-1044322d867e)
-* [https://mountainscholar.org/items/370ac2d9-422f-4256-a764-b75a5a84e724](https://mountainscholar.org/items/370ac2d9-422f-4256-a764-b75a5a84e724)
-
-Data was derived from the following sources:
-
-* Environmental Protection Agency (EPA) 24-hour PM2.5 ground monitor data
-* Hazard Mapping System (HMS) smoke and fire product
-
+## Author
+Pranav Ganesh
