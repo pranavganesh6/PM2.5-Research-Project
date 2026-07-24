@@ -1,15 +1,15 @@
 # PM2.5 Research Project
 
-## Predicting Neighborhood-Level Air Quality Spikes in San Jose During Wildfire Season Using Machine Learning
+## Predicting Neighborhood-Level Air Quality Concentrations in San Jose During Wildfire Season Using Machine Learning
 
 ## Overview
-This project investigates how accurately different machine learning and statistical models can predict daily, neighborhood-level PM2.5 (fine particulate matter) concentrations in San Jose, CA during wildfire season. Ten predictive approaches — spanning regression, ensemble learning, neural networks, time-series methods, and an exploratory LLM few-shot prompting approach — were trained and evaluated on the same dataset to see which techniques actually deliver the most reliable forecasts.
+This project investigates how accurately different machine learning and statistical models can predict daily, neighborhood-level PM2.5 (fine particulate matter) concentrations in San Jose, CA during wildfire season. Thirteen predictive approaches — spanning regression-based methods (Linear Regression, Polynomial Regression with Lasso regularization, Elastic Net), ensemble methods (Random Forest, Gradient Boosting), neural networks (a multi-layer perceptron, a convolutional neural network, and a hybrid MLP plus Linear Regression model), time-series methods (ARIMA, SARIMAX), an exploratory LLM few-shot prompting approach, a persistence baseline, and a Zero-Shot Rule-Based heuristic baseline — were trained and evaluated on the same dataset to see which techniques actually deliver the most reliable forecasts.
 
 ## Motivation
 Wildfires have grown more frequent and severe across California, and their smoke travels far beyond the burn area, affecting millions of people who never see a flame. PM2.5 is the most harmful pollutant in that smoke, small enough to penetrate deep into the lungs and bloodstream, and is linked to asthma attacks, COPD, cardiovascular disease, and higher mortality. San Jose doesn't sit near a fire's origin, but its air quality still degrades from smoke carried in from elsewhere, and conditions can vary between neighborhoods within the same short window of time. Reliable neighborhood-level forecasts, delivered with enough lead time, could help residents limit exposure, help schools plan activities, and give healthcare providers and emergency planners advance notice.
 
 ## Research Question
-How accurately can machine learning models predict neighborhood-level air quality spikes in San Jose during wildfire season?
+How accurately can machine learning models predict neighborhood-level air quality concentrations in San Jose during wildfire season?
 
 ## Data Sources
 All data comes from public sources:
@@ -24,7 +24,7 @@ All data comes from public sources:
 2. Added previous-day PM2.5 concentration as a predictor
 3. Built two dataset versions (raw and standardized) to accommodate models that need scaled features
 4. Split data into training and testing sets
-5. Trained and evaluated 10 models plus a persistence baseline
+5. Trained and evaluated 13 models plus a persistence baseline
 6. Compared all models using MAE, MSE, RMSE, and R²
 
 ### Models Evaluated
@@ -35,28 +35,32 @@ All data comes from public sources:
 - Random Forest
 - Gradient Boosting
 - Multi-Layer Perceptron (MLP)
+- Convolutional Neural Network (CNN)
 - Hybrid MLP + Linear Regression (linear regression on MLP hidden-layer features)
 - ARIMA
 - SARIMAX
 - LLM few-shot prompting (exploratory)
+- Zero-Shot Rule-Based (heuristic baseline)
 
 ## Results
 
 | Model | MAE | MSE | RMSE | R² |
-|-------|-----|-----|------|-----|
-| **Linear Regression** | **0.673** | **0.723** | **0.850** | **0.795** |
-| Polynomial Regression + Lasso (Degree 1) | 0.682 | 0.728 | 0.853 | 0.793 |
-| Elastic Net | 0.696 | 0.759 | 0.871 | 0.784 |
-| Random Forest | 0.831 | 1.064 | 1.032 | 0.698 |
-| Gradient Boosting | 0.962 | 1.323 | 1.150 | 0.624 |
-| MLP | 1.023 | 1.750 | 1.323 | 0.503 |
-| Persistence Baseline | 1.232 | 2.217 | 1.489 | 0.370 |
-| MLP + Linear Regression | 1.218 | 2.390 | 1.546 | 0.321 |
-| ARIMA | 1.590 | 3.568 | 1.889 | -0.013 |
-| LLM Few-Shot Prompting | 2.790 | 11.683 | 3.418 | -2.318 |
-| SARIMAX | 6.237 | 48.614 | 6.972 | -12.805 |
+|---|---|---|---|---|
+| Polynomial Regression + Lasso (Degree 3) | 0.6766 | 0.7059 | 0.8402 | 0.7995 |
+| Linear Regression | 0.6734 | 0.7233 | 0.8504 | 0.7946 |
+| Elastic Net | 0.6961 | 0.7591 | 0.8713 | 0.7844 |
+| Random Forest (tuned) | 0.7984 | 1.0106 | 1.0053 | 0.7130 |
+| Gradient Boosting (tuned) | 0.7757 | 1.0124 | 1.0062 | 0.7125 |
+| CNN (tuned) | 0.8715 | 1.2148 | 1.1022 | 0.6550 |
+| MLP (tuned) | 0.9259 | 1.3363 | 1.1560 | 0.6205 |
+| MLP + Linear Regression | 1.2028 | 2.1830 | 1.4775 | 0.3801 |
+| Baseline | 1.2319 | 2.2174 | 1.4891 | 0.3703 |
+| ARIMA | 1.5902 | 3.5684 | 1.8890 | -0.0133 |
+| LLM Few-Shot Prompting | 3.0708 | 13.0135 | 3.6074 | -2.6955 |
+| Zero-Shot Rule-Based | 6.0069 | 39.6049 | 6.2932 | -10.2467 |
+| SARIMAX | 6.2371 | 48.6142 | 6.9724 | -12.8051 |
 
-**Linear Regression was the top performer**, explaining roughly 79.5% of the variance in PM2.5 concentrations, with Polynomial Regression (Lasso, degree 1) and Elastic Net close behind. Ensemble methods (Random Forest, Gradient Boosting) and the MLP trailed the regression models. Time-series methods (ARIMA, SARIMAX) and the exploratory LLM approach performed worst, in several cases failing to beat the naive persistence baseline.
+**Polynomial Regression with Lasso regularization (degree 3) was the top performer**, explaining roughly 80.0% of the variance in PM2.5 concentrations, narrowly ahead of Linear Regression and Elastic Net, which were close behind. Ensemble methods (Random Forest, Gradient Boosting) and the neural networks (CNN, MLP) trailed the regression models. Time-series methods (ARIMA, SARIMAX) and the exploratory LLM and rule-based approaches performed worst, in several cases failing to beat the naive persistence baseline.
 
 ## Key Takeaway
 Model complexity did not translate into better predictions on this dataset. Simple regression-based models — cheap to run and easy to interpret — outperformed ensemble methods, neural networks, time-series models, and an LLM-based approach for neighborhood-level wildfire smoke PM2.5 forecasting. This suggests the chosen predictor variables already captured the dominant physical drivers of smoke transport well enough that a linear fit was sufficient.
